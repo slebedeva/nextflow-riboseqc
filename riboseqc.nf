@@ -6,7 +6,7 @@
  * Mapped reads are downloaded from Google drive as described in Riboseqc manual
  * Reference genome and gtf are chr22 and chrM of the hg38 gencode assembly.
  */
-params.bam = "$baseDir/test_data/test_human_HEK293.bam"
+//params.bam = "$baseDir/test_data/test_human_HEK293.bam"
 params.gtf = "$baseDir/test_data/test_human_chrM_22.gtf"
 params.fasta = "$baseDir/test_data/test_human_chrM_22.fa"
 params.rmd_template = "$baseDir/riboseqc_template.Rmd"
@@ -14,11 +14,11 @@ params.outdir = "results"
 
 
 workflow {
-    reads_ch = channel.fromPath( params.bam, checkIfExists: true )
+    reads_ch = channel.fromPath( "$baseDir/test_data/*.bam", checkIfExists: true )
     twobit_ch = UCSC_FATOTWOBIT(params.fasta)
     rannot_ch = RIBOSEQC_ANNOTATION(params.gtf, twobit_ch, params.fasta)
     RIBOSEQC(reads_ch, rannot_ch, params.fasta)
-    RIBOSEQC_REPORT(RIBOSEQC.out.riboseqc_results, params.rmd_template)
+    RIBOSEQC_REPORT(RIBOSEQC.out.riboseqc_results.collect(), params.rmd_template)
 }
 
 process UCSC_FATOTWOBIT {
@@ -139,7 +139,7 @@ process RIBOSEQC_REPORT{
 
     library('RiboseQC')
 
-    input_files = "${riboseqc_results}"
+    input_files = "${riboseqc_results}" %>% stringr::str_split(" ") %>% unlist()
     sample_names <- input_files %>% sub(".bam_results_RiboseQC","",.)
     output_file="RiboseQC_report.html"
 
