@@ -11,9 +11,11 @@ To obtain test data:
 
 ## How to run
 
-`nextflow run .` will run the pipeline on test data. It will generate `results` folder with the results of the analysis.
+`nextflow run . -profile local,docker` will run the pipeline on test data locally (prerequisite: docker rights).
 
-For debugging, use `nextflow run . -resume`.
+It will generate `results` folder with the results of the analysis.
+
+For debugging, use `nextflow run . -profile local,docker -resume`.
 
 ## Run on your data
 
@@ -25,7 +27,7 @@ To run on your data, you need to specify the following parameters:
 
 Optionally, specify output directory with `--outdir` (default: `results`).
 ```
-nextflow run slebedeva/nextflow-riboseqc -r v0.1.0-alpha \
+nextflow run slebedeva/nextflow-riboseqc \
 --input_dir $INPUT_DIR \
 --gtf $GTF \
 --fasta $FASTA

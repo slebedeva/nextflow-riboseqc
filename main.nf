@@ -10,7 +10,7 @@
 params.input_dir = "$baseDir/test_data"
 params.gtf = "$baseDir/test_data/test_human_chrM_22.gtf"
 params.fasta = "$baseDir/test_data/test_human_chrM_22.fa"
-params.rmd_template = "$baseDir/riboseqc_template.Rmd"
+params.rmd_template = "https://raw.githubusercontent.com/slebedeva/nextflow-riboseqc/refs/heads/main/riboseqc_template.Rmd"
 params.outdir = "results"
 
 
