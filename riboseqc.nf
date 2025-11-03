@@ -3,10 +3,11 @@
 /*
  * The following pipeline parameters specify the reference genomes
  * and mapped reads and can be provided as command line options
- * Mapped reads are downloaded from Google drive as described in Riboseqc manual
+ * Input is the directory where bam files are located and pipeline will take all bam files in that directory
+ * Mapped reads for test data are downloaded from Google drive as described in Riboseqc manual
  * Reference genome and gtf are chr22 and chrM of the hg38 gencode assembly.
  */
-//params.bam = "$baseDir/test_data/test_human_HEK293.bam"
+params.input_dir = "$baseDir/test_data"
 params.gtf = "$baseDir/test_data/test_human_chrM_22.gtf"
 params.fasta = "$baseDir/test_data/test_human_chrM_22.fa"
 params.rmd_template = "$baseDir/riboseqc_template.Rmd"
@@ -14,7 +15,7 @@ params.outdir = "results"
 
 
 workflow {
-    reads_ch = channel.fromPath( "$baseDir/test_data/*.bam", checkIfExists: true )
+    reads_ch = channel.fromPath( "${params.input_dir}/*.bam", checkIfExists: true )
     twobit_ch = UCSC_FATOTWOBIT(params.fasta)
     rannot_ch = RIBOSEQC_ANNOTATION(params.gtf, twobit_ch, params.fasta)
     RIBOSEQC(reads_ch, rannot_ch, params.fasta)
