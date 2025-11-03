@@ -9,6 +9,7 @@
 params.bam = "$baseDir/test_data/test_human_HEK293.bam"
 params.gtf = "$baseDir/test_data/test_human_chrM_22.gtf"
 params.fasta = "$baseDir/test_data/test_human_chrM_22.fa"
+params.rmd_template = "$baseDir/riboseqc_template.Rmd"
 params.outdir = "results"
 
 
@@ -17,6 +18,7 @@ workflow {
     twobit_ch = UCSC_FATOTWOBIT(params.fasta)
     rannot_ch = RIBOSEQC_ANNOTATION(params.gtf, twobit_ch, params.fasta)
     RIBOSEQC(reads_ch, rannot_ch, params.fasta)
+    RIBOSEQC_REPORT(RIBOSEQC.out.riboseqc_results, params.rmd_template)
 }
 
 process UCSC_FATOTWOBIT {
@@ -96,7 +98,7 @@ process RIBOSEQC {
     path "*_for_ORFquant"
     path "*P_sites*"
     path "*_junctions"
-    path "*_results_RiboseQC"
+    path "*_results_RiboseQC", emit: riboseqc_results
     path "*_results_RiboseQC_all"
 
     script:
@@ -113,3 +115,56 @@ process RIBOSEQC {
     """
 }
 
+process RIBOSEQC_REPORT{
+
+    publishDir params.outdir
+
+    // WARN: only works with given version, do not bump up!
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+    ? 'https://depot.galaxyproject.org/singularity/riboseqc:1.1--r36_1'
+    : 'quay.io/biocontainers/riboseqc:1.1--r36_1'}"
+
+    input:
+    path riboseqc_results
+    path rmd_template
+
+    output:
+    path "RiboseQC_report.html"
+
+    script:
+    """
+    #!/usr/bin/env Rscript
+
+    library('RiboseQC')
+
+    input_files = "${riboseqc_results}"
+    sample_names <- input_files %>% sub(".bam_results_RiboseQC","",.)
+    output_file="RiboseQC_report.html"
+
+    # This function is broken:
+    #create_html_report(input_files=inpt_files, input_sample_names=smaple_names, output_file=output_file, extended=FALSE)
+
+    # Instead, run parts of the create_html_report function by hand
+    input_files <- paste(normalizePath(dirname(input_files)), 
+            basename(input_files), sep = "/")
+    output_file <- paste(normalizePath(dirname(output_file)), 
+            basename(output_file), sep = "/")
+    # change rmd path to local template (reason: render params not declared in YAML: intermediates_dir)
+    #original was: rmd_path <- paste(system.file(package = "RiboseQC", mustWork = TRUE), "/rmd/riboseqc_template.Rmd", sep = "")
+    rmd_path <- "${rmd_template}"
+    output_fig_path <- paste(output_file, "_plots/", sep = "")
+    dir.create(paste0(output_fig_path, "rds/"), recursive = TRUE, showWarnings = FALSE)
+    dir.create(paste0(output_fig_path, "pdf/"), recursive = TRUE, showWarnings = FALSE)
+    
+    knitclean <- knitr::knit_meta(class = NULL, clean = TRUE)
+    # give intermediates_dir here
+    int_dir = 'knitr_tmp'
+    if(! dir.exists(int_dir)){ dir.create(int_dir) }
+    render(rmd_path, params = list(input_files = input_files, 
+            input_sample_names = sample_names,
+            output_fig_path = output_fig_path,
+            intermediates_dir=int_dir), 
+            output_file = output_file)
+
+    """
+}
