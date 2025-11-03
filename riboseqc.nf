@@ -124,6 +124,8 @@ process RIBOSEQC_REPORT{
     ? 'https://depot.galaxyproject.org/singularity/riboseqc:1.1--r36_1'
     : 'quay.io/biocontainers/riboseqc:1.1--r36_1'}"
 
+    containerOptions { "-v /usr/share/fonts:/usr/share/fonts:ro" }
+
     input:
     path riboseqc_results
     path rmd_template
