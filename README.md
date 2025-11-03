@@ -11,6 +11,23 @@ To obtain test data:
 
 ## How to run
 
-`nextflow run riboseqc.nf` will run the pipeline on test data. It will generate `results` folder with the results of the analysis.
+`nextflow run .` will run the pipeline on test data. It will generate `results` folder with the results of the analysis.
 
-For debugging, use `nextflow run riboseqc.nf -resume`.
+For debugging, use `nextflow run . -resume`.
+
+## Run on your data
+
+To run on your data, you need to specify the following parameters:
+
+`input_dir` : directory containing aligned bam files of the riboseq data
+`gtf` : unzipped gtf file of your annotation
+`fasta` : unzipped genome sequence of your annotation
+
+Optionally, specify output directory with `--outdir` (default: `results`).
+```
+nextflow run slebedeva/nextflow-riboseqc -r v0.1.0-alpha \
+--input_dir $INPUT_DIR \
+--gtf $GTF \
+--fasta $FASTA
+```
+
