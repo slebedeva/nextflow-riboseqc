@@ -16,9 +16,11 @@ params.outdir = "results"
 
 workflow {
     reads_ch = channel.fromPath( "${params.input_dir}/*.bam", checkIfExists: true )
-    twobit_ch = UCSC_FATOTWOBIT(params.fasta)
-    rannot_ch = RIBOSEQC_ANNOTATION(params.gtf, twobit_ch, params.fasta)
-    RIBOSEQC(reads_ch, rannot_ch, params.fasta)
+    gtf = file(params.gtf)
+    fasta = file(params.fasta)
+    twobit_ch = UCSC_FATOTWOBIT(fasta)
+    rannot_ch = RIBOSEQC_ANNOTATION(gtf, twobit_ch, fasta)
+    RIBOSEQC(reads_ch, rannot_ch, fasta)
     RIBOSEQC_REPORT(RIBOSEQC.out.riboseqc_results.collect(), params.rmd_template)
 }
 
