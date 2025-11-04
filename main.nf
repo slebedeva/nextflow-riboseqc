@@ -50,7 +50,7 @@ process UCSC_FATOTWOBIT {
 
 process RIBOSEQC_ANNOTATION {
     tag "$gtf"
-    publishDir params.outdir
+    publishDir params.outdir, mode: 'copy'
 
 
     // WARN: only works with given version, do not bump up!
@@ -64,7 +64,7 @@ process RIBOSEQC_ANNOTATION {
     path fasta
 
     output:
-    path '*Rannot'
+    path '*Rannot', emit: riboseqc_rannot
 
     script:
     """
@@ -84,7 +84,7 @@ process RIBOSEQC_ANNOTATION {
 
 process RIBOSEQC {
     tag "RIBOSEQC on $reads.simpleName"
-    publishDir params.outdir
+    publishDir params.outdir, mode: 'copy'
 
     // WARN: only works with given version, do not bump up!
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
@@ -97,9 +97,9 @@ process RIBOSEQC {
     path fasta
 
     output:
-    path "*_coverage*bedgraph"
-    path "*_for_ORFquant"
-    path "*P_sites*"
+    path "*_coverage*bedgraph", emit: coverage_bedgraphs
+    path "*_for_ORFquant", emit: for_orfquant
+    path "*P_sites*", emit: p_sites_bedgraphs
     path "*_junctions"
     path "*_results_RiboseQC", emit: riboseqc_results
     path "*_results_RiboseQC_all"
@@ -120,7 +120,7 @@ process RIBOSEQC {
 
 process RIBOSEQC_REPORT{
 
-    publishDir params.outdir
+    publishDir params.outdir, mode: 'copy'
 
     // WARN: only works with given version, do not bump up!
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
